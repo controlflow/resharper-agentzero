@@ -20,10 +20,9 @@ namespace JetBrains.ReSharper.Plugin.AgentZero.Analysis
   // todo: detect non-linear math
   // todo: static methods from Double.*, Single.*, Math.*
 
-  public sealed class ExpressionsRewriter : TreeNodeVisitor<RewriteContext, Expr>
+  public sealed class ExpressionsRewriter : TreeNodeVisitor<RewriteContext, Expr>, IDisposable
   {
     private readonly Context myContext;
-    private readonly Solver mySolver;
     private readonly Dictionary<IDeclaredElement, Expr> myFreeVariables = new Dictionary<IDeclaredElement, Expr>();
     private readonly PredefinedType myPredefinedType;
 
@@ -31,12 +30,11 @@ namespace JetBrains.ReSharper.Plugin.AgentZero.Analysis
     [CanBeNull] private FPRMExpr myRoundingMode;
 
 
-    public ExpressionsRewriter([NotNull] Context context, [NotNull] PredefinedType predefinedType)
+    public ExpressionsRewriter([NotNull] PredefinedType predefinedType)
     {
-      myContext = context;
+      myContext = new Context();
       myPredefinedType = predefinedType;
       myPredefined = CSharpPredefined.GetInstance(predefinedType.Module);
-      mySolver = context.MkSolver();
     }
 
     public override Expr VisitNode(ITreeNode node, RewriteContext context)
@@ -503,8 +501,6 @@ namespace JetBrains.ReSharper.Plugin.AgentZero.Analysis
         var implicitlyConvertedTo = expression.GetImplicitlyConvertedTo();
         if (!implicitlyConvertedTo.IsUnknown)
         {
-
-
           // implicit cast
         }
 
@@ -523,12 +519,17 @@ namespace JetBrains.ReSharper.Plugin.AgentZero.Analysis
       return myContext.MkConst(variableName, variableSort);
     }
 
-    public bool IsUnsatisfiable()
+    public Solver Solve()
     {
-      var status = mySolver.Check();
-      if (status == Status.UNSATISFIABLE) return true;
+      return myContext.MkSolver();
+    }
 
-      return false;
+    public void Dispose()
+    {
+      foreach (var pair in myFreeVariables)
+      {
+        pair.Value.Dispose();
+      }
     }
   }
 

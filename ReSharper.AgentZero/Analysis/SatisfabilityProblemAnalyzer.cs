@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
 using JetBrains.ReSharper.Daemon.Stages.Dispatcher;
@@ -24,26 +23,28 @@ namespace JetBrains.ReSharper.Plugin.AgentZero.Analysis
       var expressionType = binaryExpression.Type();
       if (!expressionType.IsBool()) return;
 
-      using (var context = new Context())
+      using (var expressionsRewriter = new ExpressionsRewriter(element.GetPredefinedType()))
       {
-        var expressionsRewriter = new ExpressionsRewriter(context, element.GetPredefinedType());
-
-        var expr = binaryExpression.Accept(expressionsRewriter, null) as BoolExpr;
-        if (expr != null)
+        using (var expr = binaryExpression.Accept(expressionsRewriter, null) as BoolExpr)
         {
-          var solver = context.MkSolver();
-          solver.Assert(expr);
-
-          var status = solver.Check();
-          if (status == Status.UNSATISFIABLE)
+          if (expr != null)
           {
-            consumer.AddHighlighting(new UnsatisfiableExpressionError(binaryExpression));
-          }
-          else if (status == Status.SATISFIABLE)
-          {
-            var modelPresentation = ModelPresenter(solver.Model);
+            using (var solver = expressionsRewriter.Solve())
+            {
+              solver.Assert(expr);
 
-            consumer.AddHighlighting(new SatisfiableExpressionHint(binaryExpression, modelPresentation));
+              var status = solver.Check();
+              if (status == Status.UNSATISFIABLE)
+              {
+                consumer.AddHighlighting(new UnsatisfiableExpressionError(binaryExpression));
+              }
+              else if (status == Status.SATISFIABLE)
+              {
+                var modelPresentation = ModelPresenter(solver.Model);
+
+                consumer.AddHighlighting(new SatisfiableExpressionHint(binaryExpression, modelPresentation));
+              }
+            }
           }
         }
       }
