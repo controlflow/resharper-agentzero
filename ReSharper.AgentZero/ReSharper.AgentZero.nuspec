@@ -1,0 +1,27 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ReSharper.AgentZero</id>
+    <version>0.1.0</version>
+    <!-- update plugin ver in AssemblyInfo.cs plz -->
+    <title>ReSharper Agent Zero plugin</title>
+    <authors>Alexander Shvedov</authors>
+    <owners>controlflow</owners>
+    <projectUrl>https://github.com/controlflow/resharper-agentzero</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/controlflow/resharper-heapview/master/Content/icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Checks basic integer arithmetic expressions in C# for satisfability</description>
+    <releaseNotes>
+      &#8226; Initial release.
+    </releaseNotes>
+    <dependencies>
+      <dependency id="Wave" version="[5.0,6.0)" />
+    </dependencies>
+    <tags>csharp analysis satisfability solver z3 smt</tags>
+  </metadata>
+  <files>
+    <file src="bin\$Configuration$\ReSharper.AgentZero.*" target="dotFiles\" exclude="**\*.vshost.*" />
+    <file src="bin\$Configuration$\Microsoft.Z3.*" target="dotFiles\" />
+    <file src="bin\$Configuration$\libz3.dll" target="dotFiles\" />
+  </files>
+</package>
